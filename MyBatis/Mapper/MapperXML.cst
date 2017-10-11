@@ -1,0 +1,81 @@
+﻿<%-- 
+Name: Mapper XML
+Author: Setsuna Jin
+Description: Generate Mapper XML File
+--%>
+<%@ Template Language="C#" TargetLanguage="XML" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Import Namespace="SchemaExplorer" %>
+
+<%@ Property Name="AuthorName" Type="String" Category="Context" Description="The Author Name" Default="Setsuna Jin" Optional="False" %>
+<%@ Property Name="MapperNamespace" Type="String" Category="Context" Description="The mapper namespace string" Optional="False" %>
+
+<%@ Property Name="PersistentObject" Type="String" Category="Context" Description="PersistentObject class name" Optional="False" %>
+
+<%@ Property Name="CacheEnable" Type="Boolean" Category="Context" Description="Is mapper use lever2 cache" Default="true" Optional="True"%>
+<%@ Property Name="CacheType" Type="String" Category="Context" Description="The lever2 cache type class name" Default="org.mybatis.caches.ehcache.EhcacheCache" Optional="True" %>
+<%@ Property Name="CacheReadOnly" Type="Boolean" Category="Context" Description="Is the cache read only" Default="true" Optional="True"%>
+
+<%@ Register Template="../SQL/Insert.cst" Name="InsertTemplate" MergeProperties="True" ExcludeProperties="TablePrimaryKey,FlushCache"%>
+<%@ Register Template="../SQL/Delete.cst" Name="DeleteTemplate" MergeProperties="True" ExcludeProperties="TablePrimaryKey,FlushCache"%>
+<%@ Register Template="../SQL/Select.cst" Name="SelectTemplate" MergeProperties="True" ExcludeProperties="TablePrimaryKey,UseCache"%>
+<%@ Register Template="../SQL/Update.cst" Name="UpdateTemplate" MergeProperties="True" ExcludeProperties="TablePrimaryKey,FlushCache"%>
+
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+  Table    : <%= SourceTable.Name %>
+  Comment  : <%= SourceTable.Description %>
+  Mapper   : <%= MapperNamespace %>
+  Author   : <%= AuthorName %> build with CodeSmith 7.0
+  CreateAt : <%= DateTime.Now.ToLocalTime().ToString() %>
+-->
+<mapper namespace="<%= MapperNamespace %>">
+<%= GenerateSelect() %>
+<%= GenerateUpdate() %>
+<%= GenerateInsert() %>
+<%= GenerateDelete() %>
+  <% if (CacheEnable) { %>
+  <cache type="<%= CacheType %>" readOnly="<%= CacheReadOnly ? "true" : "false" %>"/>
+  <% } %>
+  
+  <!-- START USER DEFINED -->
+  
+</mapper>
+<script runat="template">
+    public string GenerateInsert(){
+        InsertTemplate instance = this.Create<InsertTemplate>();
+        this.CopyPropertiesTo(instance);
+        instance.SetProperty("TablePrimaryKey",GetPrimaryKey());
+        instance.SetProperty("FlushCache",CacheEnable);
+        return instance.RenderToString();
+    }
+    public string GenerateDelete(){
+        DeleteTemplate instance = this.Create<DeleteTemplate>();
+        this.CopyPropertiesTo(instance);
+        instance.SetProperty("TablePrimaryKey",GetPrimaryKey());
+        instance.SetProperty("FlushCache",CacheEnable);
+        return instance.RenderToString();
+    }
+    public string GenerateUpdate(){
+        UpdateTemplate instance = this.Create<UpdateTemplate>();
+        this.CopyPropertiesTo(instance);
+        instance.SetProperty("TablePrimaryKey",GetPrimaryKey());
+        instance.SetProperty("FlushCache",CacheEnable);
+        return instance.RenderToString();
+    }
+    public string GenerateSelect(){
+        SelectTemplate instance = this.Create<SelectTemplate>();
+        this.CopyPropertiesTo(instance);
+        instance.SetProperty("TablePrimaryKey",GetPrimaryKey());
+        instance.SetProperty("UseCache",CacheEnable);
+        return instance.RenderToString();
+    }
+    public string GetPrimaryKey(){
+        if(SourceTable.PrimaryKey.MemberColumns.Count == 1)
+            return SourceTable.PrimaryKey.MemberColumns[0].Name;
+        else
+            return "id";
+    }
+
+</script>

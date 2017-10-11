@@ -1,0 +1,135 @@
+﻿<%-- 
+Name: Persistent Object Class
+Author: Setsuna Jin
+Description: Generate Java Persistent Object
+--%>
+<%@ Template Language="C#" TargetLanguage="Java" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="Context"  Description="Table that the stored procedures should be based on." %>
+
+<%@ Property Name="POName" Type="String" Category="Context" Description="Persistent object class name" Optional="False" %>
+<%@ Property Name="POPackage" Type="String" Category="Context" Description="Persistent object class package" Optional="False" %>
+<%@ Property Name="AuthorName" Type="String" Category="Context" Description="The Author Name" Default="Setsuna Jin" Optional="False" %>
+<%@ Property Name="MapperNamespace" Type="String" Category="Context" Description="The mapper namespace string" Optional="False" %>
+
+package <%= POPackage %>;
+
+import java.io.Serializable;
+
+/**
+ * Persistent Object : <%= SourceTable.Database + " : " + SourceTable.FullName %>
+ * @author <%= AuthorName %> Generate By CodeSmith 7.0 At <%= DateTime.Now.ToLocalTime().ToString() %>
+ * @see <%= MapperNamespace %>
+ */
+public class <%= POName %> implements Serializable
+{
+    <% for (int i = 0; i < SourceTable.Columns.Count; i++) { %>
+    /**
+     * Description  : <%= SourceTable.Columns[i].Description %>
+     * Constraint   : <%= GenerateConstraint(SourceTable.Columns[i]) %>
+     * TableColum   : <%= GenerateTableColum(SourceTable.Columns[i]) %>
+     <% if(SourceTable.Columns[i].ExtendedProperties["CS_Default"].Value != "") { %>
+     * DefaultValue : <%= SourceTable.Columns[i].ExtendedProperties["CS_Default"].Value %>
+     <% } %>
+     */
+    private <%= TypeMapper(SourceTable.Columns[i].NativeType) %> <%= SourceTable.Columns[i].Name %>;
+    
+    <% } %>
+    /**
+     * 构造函数
+     */
+    public <%= POName %>(){}
+    
+    <% for (int i = 0; i < SourceTable.Columns.Count; i++) { %>
+    /**
+     * 获取 <%= SourceTable.Columns[i].Description %>
+     * @see #<%= SourceTable.Columns[i].Name %>
+     * @return <%= SourceTable.Columns[i].Description %>
+     */
+    public <%= TypeMapper(SourceTable.Columns[i].NativeType) %> get<%= UpperFirst(SourceTable.Columns[i].Name) %>() {
+        return <%= SourceTable.Columns[i].Name %>;
+    }
+
+    /**
+     * 设置 <%= SourceTable.Columns[i].Description %>
+     * @see #<%= SourceTable.Columns[i].Name %>
+     * @param <%= SourceTable.Columns[i].Name %> <%= SourceTable.Columns[i].Description %>
+     */
+    public void set<%= UpperFirst(SourceTable.Columns[i].Name) %>(<%= TypeMapper(SourceTable.Columns[i].NativeType) %> <%= SourceTable.Columns[i].Name %>) {
+        this.<%= SourceTable.Columns[i].Name %> = <%= SourceTable.Columns[i].Name %>;
+    }
+    
+    <% } %>
+}
+
+<script runat="template">
+    // 字段类型映射
+    public String TypeMapper(String nativeType){
+        nativeType = nativeType.ToLower();
+        switch(nativeType){
+            case "int":
+                return "Integer";
+            case "blob":
+                return "byte[]";
+            case "bit":
+                return "Boolean";
+            case "float":
+            case "double":
+            case "decimal":
+                return "Double";
+            case "varchar":
+            case "char":
+            case "text":
+            case "date":
+            case "time":
+            case "datetime":
+            case "timestamp":
+                return "String";
+            default:
+                return nativeType;
+        }
+    }
+    // 字段约束描述
+    public String GenerateConstraint(ColumnSchema column){
+        string constraint = "";
+        // 是否为空
+        if (column.AllowDBNull)
+            constraint += "[CAN NULL]";
+        else 
+            constraint += "[NOT NULL] ";
+        // 是否外键
+        if (column.IsForeignKeyMember)
+            constraint += "[Foreign Key] ";
+        // 是否主键
+        if (column.IsPrimaryKeyMember)
+            constraint += "[Primary Key] ";
+        // 是否唯一
+        if (column.IsUnique)
+            constraint += "[Unique] ";
+        return constraint;
+    }
+    
+    // 字段类型描述
+    public String GenerateTableColum(ColumnSchema column){
+        string tableColum = "[" + column.Database + ":" + column.NativeType + "]";
+        if (column.Size > 0)
+            tableColum += "[SIZE:" + column.Size + "]";
+        if (column.Scale > 0)
+            tableColum += "[SCALE:" + column.Scale + "]";
+        if (column.Precision > 0)
+            tableColum += "[PRECISION:" + column.Precision + "]";
+        return tableColum;
+    }
+    // 字段首字母大写
+    public string UpperFirst(string column){
+        char c = column.Substring(0,1).ToCharArray()[0];
+        int num = Convert.ToInt32(c);
+        if(num >= 97 && num <= 122) {
+          c = (char)(num - 32);
+          return c.ToString() + column.Substring(1);
+        }
+        else 
+          return column;
+    }
+</script>
