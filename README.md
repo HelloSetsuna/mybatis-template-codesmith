@@ -24,7 +24,7 @@ Generate Mybatis Mapper Interface, Mapper XML and PO File with CodeSmith
 
 # Database Generate Execute Context
 #### Execute `/MyBatis/Build/BuidDatabase.cst`
-#### Only different with `BuidTable.cst` is the `SourceTable` changed to `DataSource`
+#### The Different with Table Generate is the `SourceTable` changed to `DataSource`, other is same
 + `DataSource`: Choose a database which you want to generate all table once, no default value
 
 # Example Output File
