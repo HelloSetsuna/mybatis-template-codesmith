@@ -1,4 +1,4 @@
-﻿<%-- 
+<%-- 
 Name: Mybatis Table Build
 Author: Setsuna Jin
 Description: Generate Mapper Interface and Mapper XML and PO class
@@ -57,7 +57,7 @@ Description: Generate Mapper Interface and Mapper XML and PO class
     
     // 生成Mapper的命名空间
     public string GenerateMapperNamespace(){
-        return POPackage + "." + UnderLineToCamel(SourceTable.Name) + "Mapper";
+        return MapperPackage + "." + UnderLineToCamel(SourceTable.Name) + "Mapper";
     }
     // 下划线转驼峰
     public string UnderLineToCamel(string underLineName)
