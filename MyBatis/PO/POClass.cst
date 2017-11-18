@@ -1,4 +1,4 @@
-﻿<%-- 
+<%-- 
 Name: Persistent Object Class
 Author: Setsuna Jin
 Description: Generate Java Persistent Object
@@ -69,6 +69,8 @@ public class <%= POName %> implements Serializable
         nativeType = nativeType.ToLower();
         switch(nativeType){
             case "int":
+            case "smallint":
+            case "tinyint":
                 return "Integer";
             case "blob":
                 return "byte[]";
