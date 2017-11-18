@@ -32,4 +32,7 @@ Generate Mybatis Mapper Interface, Mapper XML and PO File with CodeSmith
 + `/MyBatis/AdminMapper.java`
 + `/MyBatis/AdminMapper.xml`
 
+# Clean File BOM
++ Copy `/MyBatis/Build/bom-clean.php` script to your code file generate directory, run `php bom-clean.php` at this directory to clean all files
+
 > About the nativeType convert to JavaType I will develop it late and add it to execute context
