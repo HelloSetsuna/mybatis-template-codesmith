@@ -1,4 +1,4 @@
-﻿<%-- 
+<%-- 
 Name: SQL Insert
 Author: Setsuna Jin
 Description: Insert and InsertSelective
@@ -39,7 +39,7 @@ Description: Insert and InsertSelective
     </trim>
     <trim prefix="VALUES (" suffix=")" suffixOverrides="," >
       <% for (int i = 0; i < SourceTable.Columns.Count; i++) { %>
-      <if test="id != null" >
+      <if test="<%= SourceTable.Columns[i].Name %> != null" >
         #{<%= SourceTable.Columns[i].Name %>},
       </if>
       <% } %>
