@@ -1,0 +1,56 @@
+﻿<%-- 
+Name: Mybatis Table Build
+Author: Setsuna Jin
+Description: Generate Mapper Interface and Mapper XML and PO class
+--%>
+<%@ Template Language="C#" TargetLanguage="Java" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Property Name="DataSource" Type="SchemaExplorer.DatabaseSchema" Category="Context" Description="Table that the stored procedures should be based on." %>
+
+<%@ Property Name="CacheEnable" Type="Boolean" Category="Context" Description="Is mapper use lever2 cache" Default="true" Optional="True" %>
+<%@ Property Name="SpringCacheEnable" Type="Boolean" Category="Context" Description="Is mapper use spring cache annotation" Default="true" Optional="True" %>
+<%@ Property Name="CacheType" Type="String" Category="Context" Description="The lever2 cache type class name" Default="org.mybatis.caches.ehcache.EhcacheCache" Optional="True" %>
+<%@ Property Name="CacheReadOnly" Type="Boolean" Category="Context" Description="Is the cache read only" Default="true" Optional="True"%>
+<%@ Property Name="POPackage" Type="String" Category="Context" Description="Persistent object class package" Optional="False" %>
+<%@ Property Name="MapperPackage" Type="String" Category="Context" Description="Mapper interface package" Optional="False" %>
+<%@ Property Name="AuthorName" Type="String" Category="Context" Description="The Author Name" Default="Setsuna Jin" Optional="False" %>
+
+<%@ Register Template="BuildTable.cst" Name="BuildTableTemplate" MergeProperties="True" ExcludeProperties="SourceTable" %>
+
+<% InitProgress(); %>
+<% for (int i = 0; i < DataSource.Tables.Count; i++) { BuildTable(DataSource.Tables[i]); } %>
+
+<script runat="template">
+    [Editor(typeof(System.Windows.Forms.Design.FolderNameEditor), typeof(System.Drawing.Design.UITypeEditor))]
+    public string OutputPOClassDirectory {get;set;}
+    
+    [Editor(typeof(System.Windows.Forms.Design.FolderNameEditor), typeof(System.Drawing.Design.UITypeEditor))]
+    public string OutputMapperXMLDirectory {get;set;}
+    
+    [Editor(typeof(System.Windows.Forms.Design.FolderNameEditor), typeof(System.Drawing.Design.UITypeEditor))]
+    public string OutputMapperInterfaceDirectory {get;set;}
+        
+    [Editor(typeof(System.Windows.Forms.Design.FolderNameEditor), typeof(System.Drawing.Design.UITypeEditor))]
+    public string OutputQOClassDirectory {get;set;}
+    
+    [Editor(typeof(System.Windows.Forms.Design.FolderNameEditor), typeof(System.Drawing.Design.UITypeEditor))]
+    public string OutputServiceInterfaceDirectory {get;set;}
+    
+    [Editor(typeof(System.Windows.Forms.Design.FolderNameEditor), typeof(System.Drawing.Design.UITypeEditor))]
+    public string OutputServiceImplDirectory {get;set;}
+    
+    public void InitProgress(){
+        this.Progress.MinimumValue = 0;
+        this.Progress.MaximumValue = DataSource.Tables.Count;
+        this.Progress.Step = 1;
+    }
+    
+    public void BuildTable(TableSchema table){
+        BuildTableTemplate instance = this.Create<BuildTableTemplate>();
+        this.CopyPropertiesTo(instance);
+        instance.SetProperty("SourceTable", table);
+        instance.Render(Response);
+        this.Progress.PerformStep();
+    }
+</script>

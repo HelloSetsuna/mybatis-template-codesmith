@@ -1,0 +1,48 @@
+﻿<%-- 
+Name: SQL Insert
+Author: Setsuna Jin
+Description: Insert and InsertSelective
+--%>
+<%@ Template Language="C#" TargetLanguage="XML" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Property Name="PersistentObject" Type="String" Category="Context" Description="PersistentObject class name" Optional="False" %>
+<%@ Property Name="TablePrimaryKey" Type="String" Category="Context" Description="Table primary key name (default is id)" Default="id" Optional="True"%>
+<%@ Property Name="UseGeneratedKeys" Type="Boolean" Category="Context" Description="Is use the generated key" Default="true" Optional="True"%>
+<%@ Property Name="FlushCache" Type="Boolean" Category="Context" Description="Is flush the second cache" Default="true" Optional="True"%>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="Context"  Description="Table that the stored procedures should be based on." %>
+
+  <!-- 添加数据（全部） -->
+  <insert id="insert" parameterType="<%= PersistentObject %>" useGeneratedKeys="<%= (UseGeneratedKeys ? "true" : "false") %>" keyProperty="<%= TablePrimaryKey %>"<%= FlushCache ? " flushCache=\"true\"" : "" %> >
+    INSERT INTO <%= SourceTable.Name %>
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <% for (int i = 0; i < SourceTable.Columns.Count; i++) { %>
+      <%= SourceTable.Columns[i].Name %>,
+      <% } %>
+    </trim>
+    <trim prefix="VALUES (" suffix=")" suffixOverrides="," >
+      <% for (int i = 0; i < SourceTable.Columns.Count; i++) { %>
+      #{<%= SourceTable.Columns[i].Name %>},
+      <% } %>
+    </trim>
+  </insert>
+
+  <!-- 添加数据（选择） -->
+  <insert id="insertSelective" parameterType="<%= PersistentObject %>" useGeneratedKeys="<%= (UseGeneratedKeys ? "true" : "false") %>" keyProperty="<%= TablePrimaryKey %>"<%= FlushCache ? " flushCache=\"true\"" : "" %> >
+    INSERT INTO <%= SourceTable.Name %> 
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <% for (int i = 0; i < SourceTable.Columns.Count; i++) { %>
+      <if test="<%= SourceTable.Columns[i].Name %> != null" >
+        <%= SourceTable.Columns[i].Name %>,
+      </if>
+      <% } %>
+    </trim>
+    <trim prefix="VALUES (" suffix=")" suffixOverrides="," >
+      <% for (int i = 0; i < SourceTable.Columns.Count; i++) { %>
+      <if test="<%= SourceTable.Columns[i].Name %> != null" >
+        #{<%= SourceTable.Columns[i].Name %>},
+      </if>
+      <% } %>
+    </trim>
+  </insert>
+  

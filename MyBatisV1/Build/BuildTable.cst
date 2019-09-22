@@ -1,0 +1,85 @@
+<%-- 
+Name: Mybatis Table Build
+Author: Setsuna Jin
+Description: Generate Mapper Interface and Mapper XML and PO class
+--%>
+<%@ Template Language="C#" TargetLanguage="Java" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="Context" Description="Table that the stored procedures should be based on." %>
+
+<%@ Property Name="CacheEnable" Type="Boolean" Category="Context" Description="Is mapper use lever2 cache" Default="true" Optional="True" %>
+<%@ Property Name="CacheType" Type="String" Category="Context" Description="The lever2 cache type class name" Default="org.mybatis.caches.ehcache.EhcacheCache" Optional="True" %>
+<%@ Property Name="CacheReadOnly" Type="Boolean" Category="Context" Description="Is the cache read only" Default="true" Optional="True"%>
+<%@ Property Name="POPackage" Type="String" Category="Context" Description="Persistent object class package" Optional="False" %>
+<%@ Property Name="MapperPackage" Type="String" Category="Context" Description="Mapper interface package" Optional="False" %>
+<%@ Property Name="AuthorName" Type="String" Category="Context" Description="The Author Name" Default="Setsuna Jin" Optional="False" %>
+
+<%@ Register Template="../PO/POClass.cst" Name="POClassTemplate" MergeProperties="True" ExcludeProperties="MapperNamespace,POName" %>
+<%@ Register Template="../Mapper/MapperXML.cst" Name="MapperXMLTemplate" MergeProperties="True" ExcludeProperties="MapperNamespace,PersistentObject" %>
+<%@ Register Template="../Mapper/MapperInterface.cst" Name="MapperInterfaceTemplate" MergeProperties="True" ExcludeProperties="POName,MapperName" %>
+
+<% GeneratePOClass(); %>
+<% GenerateMapperXML(); %>
+<% GenerateMapperInterface(); %>
+
+<script runat="template">
+    [Editor(typeof(System.Windows.Forms.Design.FolderNameEditor), typeof(System.Drawing.Design.UITypeEditor))]
+    public string OutputPOClassDirectory {get;set;}
+    
+    [Editor(typeof(System.Windows.Forms.Design.FolderNameEditor), typeof(System.Drawing.Design.UITypeEditor))]
+    public string OutputMapperXMLDirectory {get;set;}
+    
+    [Editor(typeof(System.Windows.Forms.Design.FolderNameEditor), typeof(System.Drawing.Design.UITypeEditor))]
+    public string OutputMapperInterfaceDirectory {get;set;}
+    
+    public void GeneratePOClass(){
+        POClassTemplate instance = this.Create<POClassTemplate>();
+        this.CopyPropertiesTo(instance);
+        instance.SetProperty("MapperNamespace", GenerateMapperNamespace());
+        instance.SetProperty("POName", UnderLineToCamel(SourceTable.Name));
+        instance.RenderToFile(OutputPOClassDirectory + "/" + UnderLineToCamel(SourceTable.Name) + ".java", false);
+    }
+    public void GenerateMapperXML(){
+        MapperXMLTemplate instance = this.Create<MapperXMLTemplate>();
+        this.CopyPropertiesTo(instance);
+        instance.SetProperty("MapperNamespace", GenerateMapperNamespace());
+        instance.SetProperty("PersistentObject", POPackage + "." + UnderLineToCamel(SourceTable.Name));
+        instance.RenderToFile(OutputMapperXMLDirectory + "/" + UnderLineToCamel(SourceTable.Name) + "Mapper.xml", false);
+    }
+    public void GenerateMapperInterface(){
+        MapperInterfaceTemplate instance = this.Create<MapperInterfaceTemplate>();
+        this.CopyPropertiesTo(instance);
+        instance.SetProperty("POName", UnderLineToCamel(SourceTable.Name));
+        instance.SetProperty("MapperName", UnderLineToCamel(SourceTable.Name) + "Mapper");
+        instance.RenderToFile(OutputMapperInterfaceDirectory + "/" + UnderLineToCamel(SourceTable.Name) + "Mapper.java", false);
+    }
+    
+    // 生成Mapper的命名空间
+    public string GenerateMapperNamespace(){
+        return MapperPackage + "." + UnderLineToCamel(SourceTable.Name) + "Mapper";
+    }
+    // 下划线转驼峰
+    public string UnderLineToCamel(string underLineName)
+    {
+        string camelStr = "";
+        char[] charArr = underLineName.ToCharArray(0,underLineName.Length);
+        bool isUp = true;
+        for(int i = 0;i<underLineName.Length;i++) {
+            if(isUp){
+                isUp = false;
+                int num = Convert.ToInt32(charArr[i]);
+                if(num >= 97 && num <= 122) {
+                    charArr[i] = (char)(Convert.ToInt32(charArr[i]) - 32);
+                }
+            }
+            if(charArr[i] == '_') {
+                isUp = true;
+            }
+            else{
+                camelStr += charArr[i].ToString();
+            }
+        }
+        return camelStr;
+    }
+</script>

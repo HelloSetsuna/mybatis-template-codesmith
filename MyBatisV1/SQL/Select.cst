@@ -1,0 +1,60 @@
+﻿<%-- 
+Name: SQL Select
+Author: Setsuna Jin
+Description: SQL and ResultMap and SelectByPK and SelectAll and CountAll
+--%>
+<%@ Template Language="C#" TargetLanguage="XML" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Property Name="PersistentObject" Type="String" Category="Context" Description="PersistentObject class name" Optional="False" %>
+<%@ Property Name="UseCache" Type="Boolean" Category="Context" Description="Is the select use cache" Default="true" Optional="True"%>
+<%@ Property Name="TablePrimaryKey" Type="String" Category="Context" Description="Table primary key name (default is id)" Default="id" Optional="True"%>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="Context"  Description="Table that the stored procedures should be based on." %>
+
+  <!-- SQL 片段:所有字段 -->
+  <sql id="sqlColumns" >
+    <% for (int i = 0; i < SourceTable.Columns.Count; i++) { %>
+    <%= SourceTable.Columns[i].Name %><% if (i < SourceTable.Columns.Count - 1) { %>,<% } %>
+    <% } %>
+  </sql>
+
+  <!-- SQL 片段:所有字段（带表头和 AS） -->
+  <sql id="sqlColumnsAs" >
+    <% for (int i = 0; i < SourceTable.Columns.Count; i++) { %>
+    <%= SourceTable.Columns[i].FullName %> AS <%= SourceTable.Columns[i].Name %><% if (i < SourceTable.Columns.Count - 1) { %>,<% } %>
+    <% } %>
+  </sql>
+
+  <!-- ResultMap: 默认表结构 -->
+  <resultMap id="resultMapDefault" type="<%= PersistentObject %>" >
+    <!-- Comment: 主键 -->
+    <id column="<%= TablePrimaryKey %>" property="<%= TablePrimaryKey %>"/>
+    <% for (int i = 0; i < SourceTable.NonPrimaryKeyColumns.Count; i++) { %>
+    <% if(SourceTable.NonPrimaryKeyColumns[i].Description != null) { %>
+    <!-- Comment: <%= SourceTable.NonPrimaryKeyColumns[i].Description %> -->
+    <% } %>
+    <result column="<%= SourceTable.NonPrimaryKeyColumns[i].Name %>" property="<%= SourceTable.NonPrimaryKeyColumns[i].Name %>"/>
+    <% } %>
+  </resultMap>
+
+  <!-- 按主键查询数据 -->
+  <select id="selectByPK" resultType="<%= PersistentObject %>" parameterType="java.lang.Integer"<%= UseCache ? " useCache=\"true\"" : "" %>>
+    SELECT
+      <include refid="columns"/>
+    FROM <%= SourceTable.Name %>
+    WHERE <%= TablePrimaryKey %> = #{<%= TablePrimaryKey %>}
+  </select>
+
+  <!-- 查询所有数据 -->
+  <select id="selectAll" resultType="<%= PersistentObject %>"<%= UseCache ? " useCache=\"true\"" : "" %> >
+    SELECT
+      <include refid="columns"/>
+    FROM <%= SourceTable.Name %>
+  </select>
+
+  <!-- 获取数据条数 -->
+  <select id="countAll" resultType="java.lang.Integer"<%= UseCache ? " useCache=\"true\"" : "" %> >
+    SELECT count(<%= TablePrimaryKey %>)
+    FROM <%= SourceTable.Name %>
+  </select>
+  

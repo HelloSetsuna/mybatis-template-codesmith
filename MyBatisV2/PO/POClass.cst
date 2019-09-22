@@ -1,0 +1,157 @@
+﻿<%-- 
+Name: Persistent Object Class
+Author: Setsuna Jin
+Description: Generate Java Persistent Object
+--%>
+<%@ Template Language="C#" TargetLanguage="Java" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="Context"  Description="Table that the stored procedures should be based on." %>
+
+<%@ Property Name="POName" Type="String" Category="Context" Description="Persistent object class name" Optional="False" %>
+<%@ Property Name="POPackage" Type="String" Category="Context" Description="Persistent object class package" Optional="False" %>
+<%@ Property Name="AuthorName" Type="String" Category="Context" Description="The Author Name" Default="Setsuna Jin" Optional="False" %>
+<%@ Property Name="MapperNamespace" Type="String" Category="Context" Description="The mapper namespace string" Optional="False" %>
+
+package <%= POPackage %>;
+
+import java.util.Date;
+import com.welearn.entity.po.BasePersistant;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import org.hibernate.validator.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+
+/**
+ * Persistent Object : <%= SourceTable.Database + " : " + SourceTable.FullName %>
+ * @author <%= AuthorName %> Generate By CodeSmith 7.0 At <%= DateTime.Now.ToLocalTime().ToString() %>
+ */
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+@ApiModel(value = "<%= POName %>", description = "<%= POName %> 领域实体")
+public class <%= POName %> extends BasePersistant
+{
+    <% for (int i = 0; i < SourceTable.Columns.Count; i++) { %>
+    <% if(GenerateIgnore(SourceTable.Columns[i].Name)) continue; %>
+    /**
+     * Description  : <%= SourceTable.Columns[i].Description %>
+     * Constraint   : <%= GenerateConstraint(SourceTable.Columns[i]) %>
+     * TableColumn   : <%= GenerateTableColum(SourceTable.Columns[i]) %>
+     <% if(SourceTable.Columns[i].ExtendedProperties["CS_Default"].Value != "") { %>
+     * DefaultValue : <%= SourceTable.Columns[i].ExtendedProperties["CS_Default"].Value %>
+     <% } %>
+     */
+    <% if(GenerateAnnotation(SourceTable.Columns[i]) != "") { %>
+    <%= GenerateAnnotation(SourceTable.Columns[i]) %>
+    <% } %>
+    @ApiModelProperty( value = "<%= SourceTable.Columns[i].Description %>", allowEmptyValue = <%= !SourceTable.Columns[i].AllowDBNull && SourceTable.Columns[i].ExtendedProperties["CS_Default"].Value == "" ? "false" : "true" %>, position = <%= i %> )
+    private <%= TypeMapper(SourceTable.Columns[i].NativeType) %> <%= SourceTable.Columns[i].Name %>;
+    
+    <% } %>
+}
+
+<script runat="template">
+    // 字段类型映射
+    public String TypeMapper(String nativeType){
+        nativeType = nativeType.ToLower();
+        switch(nativeType){
+            case "bigint":
+              return "Long";
+            case "int":
+            case "smallint":
+                return "Integer";
+            case "blob":
+            case "bit":
+                return "byte[]";
+            case "tinyint":
+                return "Boolean";
+            case "float":
+            case "double":
+            case "decimal":
+                return "Double";
+            case "varchar":
+            case "char":
+            case "text":
+                return "String";
+            case "date":
+            case "time":
+            case "datetime":
+            case "timestamp":
+                return "Date";
+            default:
+                return nativeType;
+        }
+    }
+    // 字段约束描述
+    public String GenerateConstraint(ColumnSchema column){
+        string constraint = "";
+        // 是否为空
+        if (column.AllowDBNull)
+            constraint += "[CAN NULL]";
+        else 
+            constraint += "[NOT NULL] ";
+        // 是否外键
+        if (column.IsForeignKeyMember)
+            constraint += "[Foreign Key] ";
+        // 是否主键
+        if (column.IsPrimaryKeyMember)
+            constraint += "[Primary Key] ";
+        // 是否唯一
+        if (column.IsUnique)
+            constraint += "[Unique] ";
+        return constraint;
+    }
+    
+    // 字段约束描述
+    public String GenerateAnnotation(ColumnSchema column){
+        // 是否为空 当无默认值时才添加 validation 限制
+        if (!column.AllowDBNull && column.ExtendedProperties["CS_Default"].Value == ""){
+            if(TypeMapper(column.NativeType) == "String")
+              return "@NotBlank";
+            else
+              return "@NotNull";
+        }
+        else return "";
+    }
+    
+    // 字段类型描述
+    public String GenerateTableColum(ColumnSchema column){
+        string tableColum = "[" + column.Database + ":" + column.NativeType + "]";
+        if (column.Size > 0)
+            tableColum += "[SIZE:" + (column.Size / 4) + "]";
+        if (column.Scale > 0)
+            tableColum += "[SCALE:" + column.Scale + "]";
+        if (column.Precision > 0)
+            tableColum += "[PRECISION:" + column.Precision + "]";
+        return tableColum;
+    }
+    // 字段首字母大写
+    public string UpperFirst(string column){
+        char c = column.Substring(0,1).ToCharArray()[0];
+        int num = Convert.ToInt32(c);
+        if(num >= 97 && num <= 122) {
+          c = (char)(num - 32);
+          return c.ToString() + column.Substring(1);
+        }
+        else 
+          return column;
+    }
+    
+    public bool GenerateIgnore(string column){
+        switch(column){
+          case "id":
+          case "isEnable":
+          case "createdAt":
+          case "updatedAt":
+            return true;
+          default:
+            return false;
+        }
+    }
+</script>

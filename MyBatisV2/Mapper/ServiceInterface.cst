@@ -1,0 +1,30 @@
+﻿<%-- 
+Name: Mapper Interface
+Author: Setsuna Jin
+Description: Generate Mapper Interface File
+--%>
+<%@ Template Language="C#" TargetLanguage="Java" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="Context"  Description="Table that the stored procedures should be based on." %>
+
+<%@ Property Name="POName" Type="String" Category="Context" Description="Persistent object class name" Optional="False" %>
+<%@ Property Name="POPackage" Type="String" Category="Context" Description="Persistent object class package" Optional="False" %>
+<%@ Property Name="MapperName" Type="String" Category="Context" Description="Mapper interface name" Optional="False" %>
+<%@ Property Name="MapperPackage" Type="String" Category="Context" Description="Mapper interface package" Optional="False" %>
+<%@ Property Name="AuthorName" Type="String" Category="Context" Description="The Author Name" Default="Setsuna Jin" Optional="False" %>
+
+package com.welearn.service;
+
+import <%= POPackage %>.<%= POName %>;
+import <%= POPackage.Replace(".po.",".qo.")%>.<%= POName %>QueryCondition;
+import org.springframework.validation.annotation.Validated;
+
+/**
+ * Description : <%= POName %>Service Interface
+ * Created by Setsuna Jin on 2018/1/8.
+ */
+@Validated
+public interface <%= POName %>Service extends BaseService<<%= POName %>, <%= POName %>QueryCondition>{
+
+}

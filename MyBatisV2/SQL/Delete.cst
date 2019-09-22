@@ -1,0 +1,22 @@
+﻿<%-- 
+Name: SQL Delete
+Author: Setsuna Jin
+Description: DeleteByPK and DeleteAll
+--%>
+<%@ Template Language="C#" TargetLanguage="XML" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Property Name="FlushCache" Type="Boolean" Category="Context" Description="Is flush the second cache" Default="true" Optional="True"%>
+<%@ Property Name="TablePrimaryKey" Type="String" Category="Context" Description="Table primary key name (default is id)" Default="id" Optional="True"%>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="Context"  Description="Table that the stored procedures should be based on." %>
+
+  <!-- 根据主键删除 -->
+  <delete id="deleteByPK" parameterType="java.lang.String"<%= FlushCache ? " flushCache=\"true\"" : "" %> >
+    DELETE FROM <%= SourceTable.Name %> WHERE <%= TablePrimaryKey %> = #{<%= TablePrimaryKey %>}
+  </delete>
+
+  <!-- 删除全部数据 -->
+  <delete id="deleteAll"<%= FlushCache ? " flushCache=\"true\"" : "" %>>
+    DELETE FROM <%= SourceTable.Name %>
+  </delete>
+  

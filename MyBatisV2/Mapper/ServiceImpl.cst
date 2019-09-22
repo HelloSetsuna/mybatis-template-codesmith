@@ -1,0 +1,56 @@
+﻿<%-- 
+Name: Mapper Interface
+Author: Setsuna Jin
+Description: Generate Mapper Interface File
+--%>
+<%@ Template Language="C#" TargetLanguage="Java" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="Context"  Description="Table that the stored procedures should be based on." %>
+
+<%@ Property Name="POName" Type="String" Category="Context" Description="Persistent object class name" Optional="False" %>
+<%@ Property Name="POPackage" Type="String" Category="Context" Description="Persistent object class package" Optional="False" %>
+<%@ Property Name="MapperName" Type="String" Category="Context" Description="Mapper interface name" Optional="False" %>
+<%@ Property Name="MapperPackage" Type="String" Category="Context" Description="Mapper interface package" Optional="False" %>
+<%@ Property Name="AuthorName" Type="String" Category="Context" Description="The Author Name" Default="Setsuna Jin" Optional="False" %>
+
+package com.welearn.service.impl;
+
+import <%= POPackage %>.<%= POName %>;
+import <%= POPackage.Replace(".po.",".qo.")%>.<%= POName %>QueryCondition;
+import com.welearn.mapper.<%= POName %>Mapper;
+import com.welearn.service.<%= POName %>Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+/**
+ * Description : <%= POName %>Service Implement
+ * Created by Setsuna Jin on 2018/1/8.
+ */
+@Service
+public class <%= POName %>ServiceImpl extends BaseServiceImpl<<%= POName %>,<%= POName %>QueryCondition,<%= POName %>Mapper>
+        implements <%= POName %>Service{
+    
+    @Autowired
+    private <%= POName %>Mapper <%= LowFirst(POName) %>Mapper;
+    
+    @Override
+    <%= POName %>Mapper getMapper() {
+        return <%= LowFirst(POName) %>Mapper;
+    }
+
+}
+
+<script runat="template">
+    // 字段首字母大写
+    public string LowFirst(string column){
+        char c = column.Substring(0,1).ToCharArray()[0];
+        int num = Convert.ToInt32(c);
+        if(num >= 65 && num <= 90) {
+          c = (char)(num + 32);
+          return c.ToString() + column.Substring(1);
+        }
+        else 
+          return column;
+    }
+</script>
